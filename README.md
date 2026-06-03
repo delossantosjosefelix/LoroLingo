@@ -1,46 +1,46 @@
-LoroLingo
-Academic Information
-Course: Mobile Device Programming
+# LoroLingo
 
-Professor: Emilio Peña
+## Academic Information
 
-University: Universidad Católica del Cibao (UCATECI)
+**Course:** Mobile Device Programming
 
-Student: José Félix De Los Santos
+**Professor:** Emilio Peña
 
-Student ID: 2024-1135
+**University:** Universidad Católica del Cibao (UCATECI)
 
-Project Preview
-(You can add a screenshot of your app's home screen or your custom logo here later)
+**Student:** José Félix DLS
 
-Project Objective
-The objective of this project is to develop an interactive educational mobile application that facilitates learning basic English vocabulary. It serves as a practical evaluation to apply acquired knowledge of user interface design, visual component organization, and mobile development using Jetpack Compose.
+**Student ID:** 2024-1135
 
-Description
-LoroLingo is an educational mobile application developed in Android Studio that provides an intuitive and visual way to learn colors and numbers in English. Designed with a modern, dark-mode optimized interface and a touch of humor inspired by popular language-learning apps, the application features its own mascot and ensures a seamless user experience. Navigation between modules is efficiently handled using state management (rememberSaveable) to maintain the user's progress.
+![image alt](LoroLingo.png)
 
-Learning Modules
-Colors in English: An interactive module displaying cards with 13 different colors, featuring their name in Spanish, their English translation, and a visual color representation.
+## Project Objective
 
-Numbers in English: A structured section presenting numbers from 1 to 100. The numbers are organized in groups of tens (e.g., 1-10, 11-20) for easier navigation, showing both the numerical digit and its English spelling.
+The objective of this project is to develop an interactive educational mobile application that facilitates learning basic English vocabulary while applying the concepts learned in the Mobile Device Programming course. The application serves as a practical and engaging platform that allows users to explore and learn colors and numbers in English through a modern interface.
 
-Features
-Simple, modern, and user-friendly interface (Dark Theme).
+## Description
 
-Custom mascot and branding.
+LoroLingo is an educational mobile application developed in Android Studio that provides an intuitive and visual way to learn fundamental English concepts. Designed with a clean, dark-mode optimized interface and a custom mascot, the application features specific modules to help users identify colors and count from 1 to 100, ensuring a seamless and entertaining user experience.
 
-Optimized scrollable lists and grids using LazyColumn and LazyGrid.
+## Included Modules
 
-Persistent UI state management upon screen rotation.
+* Colors in English
+* Numbers in English (1 to 100)
 
-Easy and fluid navigation between the Home screen and learning modules.
+## Features
 
-Technologies Used
-Kotlin
+* Simple, modern, and user-friendly interface (Dark Theme)
+* Content categorized by educational modules
+* Visual representation of 13 colors with their translations
+* Numbers organized in scrollable groups of tens
+* Easy and fluid navigation between sections using state management
 
-Jetpack Compose
+## Technologies Used
 
-Android Studio
+* Kotlin
+* Jetpack Compose
+* Android Studio
 
-Project Status
+## Project Status
+
 Completed academic project developed for educational purposes.
