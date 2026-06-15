@@ -292,6 +292,7 @@ fun PantallaCuestionario(onVolver: () -> Unit) {
                 }
             }
 
+            // 1. RESULTADO (Aparece primero si ya se calificó)
             item {
                 if (mostrarResultado) {
                     ResultadoFinalCard(
@@ -305,79 +306,76 @@ fun PantallaCuestionario(onVolver: () -> Unit) {
                         colorBlanco = colorBlanco,
                         colorGris = colorGris
                     )
-                    
                     Spacer(modifier = Modifier.height(16.dp))
                 }
             }
 
+            // 2. BOTONES DE ACCIÓN (Calificar y Salir)
             item {
                 Spacer(modifier = Modifier.height(8.dp))
-            }
-        }
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(colorFondo)
-                .padding(24.dp)
-        ) {
-            Row(
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Button(
-                    onClick = {
-                        var score = 0
-                        preguntas.forEachIndexed { index, pregunta ->
-                            if (respuestas[index] == pregunta.respuestaCorrecta) {
-                                score++
+                Row(
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Button(
+                        onClick = {
+                            var score = 0
+                            preguntas.forEachIndexed { index, pregunta ->
+                                if (respuestas[index] == pregunta.respuestaCorrecta) {
+                                    score++
+                                }
                             }
-                        }
-                        puntaje = score
-                        mostrarResultado = true
-                        
-                        // Auto-scroll al final para ver el resultado
-                        coroutineScope.launch {
-                            delay(600)
-                            listState.animateScrollToItem(preguntas.size) // Ir al final
-                        }
-                    },
-                    enabled = !mostrarResultado,
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(52.dp)
-                        .padding(end = 8.dp),
-                    shape  = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = colorAzulOscuro
-                    )
-                ) {
-                    Text(
-                        text       = "Calificar",
-                        fontSize   = 15.sp,
-                        fontWeight = FontWeight.Bold,
-                        color      = colorBlanco
-                    )
-                }
+                            puntaje = score
+                            mostrarResultado = true
 
-                Button(
-                    onClick = onVolver,
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(52.dp)
-                        .padding(start = 8.dp),
-                    shape  = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = colorCian
-                    )
-                ) {
-                    Text(
-                        text       = "Salir",
-                        fontSize   = 15.sp,
-                        fontWeight = FontWeight.Bold,
-                        color      = Color(0xFF121212)
-                    )
+                            // Auto-scroll para mostrar el resultado arriba de los botones
+                            coroutineScope.launch {
+                                delay(600)
+                                // Scroll a la posición del resultado (que es el item justo después de las preguntas)
+                                listState.animateScrollToItem(preguntas.size) 
+                            }
+                        },
+                        enabled = !mostrarResultado,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(52.dp)
+                            .padding(end = 8.dp),
+                        shape  = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = colorAzulOscuro
+                        )
+                    ) {
+                        Text(
+                            text       = "Calificar",
+                            fontSize   = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            color      = colorBlanco
+                        )
+                    }
+
+                    Button(
+                        onClick = onVolver,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(52.dp)
+                            .padding(start = 8.dp),
+                        shape  = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = colorCian
+                        )
+                    ) {
+                        Text(
+                            text       = "Salir",
+                            fontSize   = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            color      = Color(0xFF121212)
+                        )
+                    }
                 }
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
             }
         }
     }
