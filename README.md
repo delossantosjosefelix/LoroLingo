@@ -20,12 +20,17 @@ The objective of this project is to develop an interactive educational mobile ap
 
 ## Description
 
-LoroLingo is an educational mobile application developed in Android Studio that provides an intuitive and visual way to learn fundamental English concepts. Designed with a clean, dark-mode optimized interface and a custom mascot, the application features specific modules to help users identify colors and count from 1 to 100, ensuring a seamless and entertaining user experience.
+LoroLingo is an educational mobile application developed in Android Studio that provides an intuitive and visual way to learn fundamental English concepts. Designed with a clean, dark-mode optimized interface and a custom mascot named Loro, the application features interactive modules that help users learn colors and numbers in English.
+
+The latest update introduces a Daily Tip section, an interactive quiz system, instant answer validation, and a personalized results screen where Loro reacts according to the user's performance, creating a more engaging and motivating learning experience.
 
 ## Included Modules
 
 * Colors in English
 * Numbers in English (1 to 100)
+* Daily Tip Section
+* Interactive Quiz Module
+* Performance Results Screen
 
 ## Features
 
@@ -33,6 +38,17 @@ LoroLingo is an educational mobile application developed in Android Studio that 
 * Content categorized by educational modules
 * Visual representation of 13 colors with their translations
 * Numbers organized in scrollable groups of tens
+* Daily educational tips displayed on the home screen
+* Interactive mascot (Loro) with personalized phrases and reactions
+* Quiz system with 30 questions:
+  * 15 questions about colors
+  * 15 questions about numbers
+* Random selection of 10 questions per attempt to ensure variety
+* Instant feedback for answers:
+* Correct answers highlighted in green
+* Incorrect answers highlighted in red with correction
+* Automatic grading system
+* Personalized motivational messages based on quiz performance
 * Easy and fluid navigation between sections using state management
 
 ## Technologies Used
@@ -43,4 +59,4 @@ LoroLingo is an educational mobile application developed in Android Studio that 
 
 ## Project Status
 
-Completed academic project developed for educational purposes.
+Completed academic project developed for educational purposes. Updated with new interactive learning and assessment features to improve user engagement and educational effectiveness.
