@@ -13,7 +13,7 @@
 **Student ID:** 2024-1135
 
 ![image alt](LoroLingo.png)
-![image alt](LoroLingov1.1.0.png)
+![image alt](LoroLingo v1.1.0.png)
 
 ## Project Objective
 
