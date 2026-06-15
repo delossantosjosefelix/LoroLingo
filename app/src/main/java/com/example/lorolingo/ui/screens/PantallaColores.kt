@@ -2,15 +2,16 @@ package com.example.lorolingo.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -39,66 +40,78 @@ fun PantallaColores(onVolver: () -> Unit) {
         Triple("Dorado",    "Gold",    Color(0xFFFFD700))
     )
 
-    val scrollState = rememberScrollState()
-
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(colorFondo)
-            .verticalScroll(scrollState)
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            text          = "Colores",
-            fontSize      = 32.sp,
-            fontWeight    = FontWeight.Bold,
-            color         = colorCian,
-            letterSpacing = 1.sp
-        )
-
-        Spacer(modifier = Modifier.height(4.dp))
-
-        Text(
-            text     = "Colors in English",
-            fontSize = 14.sp,
-            color    = colorGris
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        listaColores.forEach { (espanol, ingles, colorVisual) ->
-            CardColor(
-                espanol      = espanol,
-                ingles       = ingles,
-                colorVisual  = colorVisual
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(
-            onClick  = onVolver,
-            modifier = Modifier
+        // ENCABEZADO FIJO
+        Column(
+            modifier            = Modifier
                 .fillMaxWidth()
-                .height(52.dp),
-            shape  = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = colorCian
-            )
+                .padding(24.dp, 24.dp, 24.dp, 8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text       = "Volver al Inicio",
-                fontSize   = 15.sp,
-                fontWeight = FontWeight.Bold,
-                color      = Color(0xFF121212)
+                text          = "Colores",
+                fontSize      = 32.sp,
+                fontWeight    = FontWeight.Bold,
+                color         = colorCian,
+                letterSpacing = 1.sp,
+                modifier      = Modifier.fillMaxWidth(),
+                textAlign     = TextAlign.Center
+            )
+            Text(
+                text      = "Colors in English",
+                fontSize  = 14.sp,
+                color     = colorGris,
+                modifier  = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center
             )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        // CONTENIDO SCROLLABLE
+        LazyColumn(
+            modifier            = Modifier
+                .weight(1f)
+                .padding(horizontal = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding      = PaddingValues(vertical = 16.dp)
+        ) {
+            items(listaColores) { (espanol, ingles, colorVisual) ->
+                CardColor(
+                    espanol      = espanol,
+                    ingles       = ingles,
+                    colorVisual  = colorVisual
+                )
+            }
+        }
+
+        // BOTÓN FIJO AL FINAL
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(colorFondo)
+                .padding(24.dp)
+        ) {
+            Button(
+                onClick  = onVolver,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp),
+                shape  = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = colorCian
+                )
+            ) {
+                Text(
+                    text       = "Volver al Inicio",
+                    fontSize   = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    color      = Color(0xFF121212)
+                )
+            }
+        }
     }
 }
 
