@@ -85,7 +85,10 @@ private fun escogerPreguntasAleatorias(cantidad: Int): List<Pregunta> {
 }
 
 @Composable
-fun PantallaCuestionario(onVolver: () -> Unit) {
+fun PantallaCuestionario(
+    onVolver: () -> Unit,
+    onFinish: (Int, Int) -> Unit = { _, _ -> }
+) {
     val colorFondo   = Color(0xFF121212)
     val colorFondo2  = Color(0xFF1E1E1E)
     val colorCian    = Color(0xFF00F5D4)
@@ -327,6 +330,9 @@ fun PantallaCuestionario(onVolver: () -> Unit) {
                             }
                             puntaje = score
                             mostrarResultado = true
+                            
+                            // Notificar resultados
+                            onFinish(score, preguntas.size)
 
                             // Auto-scroll para mostrar el resultado arriba de los botones
                             coroutineScope.launch {

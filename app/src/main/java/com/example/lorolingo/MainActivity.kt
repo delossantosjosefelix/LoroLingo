@@ -2,29 +2,38 @@ package com.example.lorolingo
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
-import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.*
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Surface
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.example.lorolingo.ui.screens.PantallaColores
-import com.example.lorolingo.ui.screens.PantallaCuestionario
-import com.example.lorolingo.ui.screens.PantallaInicio
-import com.example.lorolingo.ui.screens.PantallaNumeros
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.example.lorolingo.data.local.AppDatabase
+import com.example.lorolingo.data.local.entities.User
+import com.example.lorolingo.ui.screens.*
 import com.example.lorolingo.ui.theme.LoroLingoTheme
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -41,79 +50,275 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun AppNavegacion() {
-    var pantallaActual by rememberSaveable {
-        mutableStateOf("inicio")
-    }
+    var pantallaActual by rememberSaveable { mutableStateOf("login") }
+    var usuarioActual by remember { mutableStateOf<User?>(null) }
+    var loggedUserId by rememberSaveable { mutableIntStateOf(-1) }
+    var esInvitado by rememberSaveable { mutableStateOf(false) }
+    
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
-    if (pantallaActual != "inicio") {
-        BackHandler {
-            pantallaActual = "inicio"
+    // Cargar usuario si hay un ID guardado
+    LaunchedEffect(loggedUserId) {
+        if (loggedUserId != -1) {
+            val db = AppDatabase.getDatabase(context)
+            usuarioActual = db.userDao().obtenerUsuarioPorId(loggedUserId)
         }
     }
+    
+    val nombreAMostrar = if (esInvitado) "Invitado" else usuarioActual?.nombre ?: "Usuario"
+    
+    var selectedTab by rememberSaveable { mutableIntStateOf(0) }
+    
+    val snackbarHostState = remember { SnackbarHostState() }
 
-    AnimatedContent(
-        targetState = pantallaActual,
-        transitionSpec = {
-            if (targetState != "inicio") {
-                (slideInHorizontally { it } + fadeIn(tween(300)))
-                    .togetherWith(slideOutHorizontally { -it } + fadeOut(tween(300)))
-            } else {
-                (slideInHorizontally { -it } + fadeIn(tween(300)))
-                    .togetherWith(slideOutHorizontally { it } + fadeOut(tween(300)))
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        containerColor = Color.Transparent
+    ) { paddingValues ->
+        Box(modifier = Modifier.fillMaxSize()) {
+            
+            // CONTENIDO PRINCIPAL
+            Box(modifier = Modifier.fillMaxSize()) {
+                AnimatedContent(
+                    targetState = pantallaActual,
+                    transitionSpec = {
+                        val slideIn = if (targetState == "login" || targetState == "registro") {
+                            slideInHorizontally(animationSpec = tween(600)) { -it } + fadeIn(tween(600))
+                        } else {
+                            slideInHorizontally(animationSpec = tween(600)) { it } + fadeIn(tween(600))
+                        }
+                        
+                        val slideOut = if (targetState == "login" || targetState == "registro") {
+                            slideOutHorizontally(animationSpec = tween(600)) { it } + fadeOut(tween(600))
+                        } else {
+                            slideOutHorizontally(animationSpec = tween(600)) { -it } + fadeOut(tween(600))
+                        }
+
+                        slideIn togetherWith slideOut
+                    },
+                    label = "transicion_pantallas"
+                ) { pantalla ->
+                    when (pantalla) {
+                        "login" -> PantallaLogin(
+                            onLoginSuccess = { user ->
+                                scope.launch {
+                                    val db = AppDatabase.getDatabase(context)
+                                    val ahora = System.currentTimeMillis()
+                                    val unDiaMs = 24 * 60 * 60 * 1000L
+                                    
+                                    val diff = ahora - user.ultimaConexion
+                                    var nuevaRacha = when {
+                                        diff < unDiaMs -> user.racha
+                                        diff < 2 * unDiaMs -> user.racha + 1
+                                        else -> 1
+                                    }
+                                    
+                                    var puntosExtra = user.puntosRacha
+                                    if (nuevaRacha >= 7 && user.racha < 7) {
+                                        puntosExtra += 1 // Punto por completar semana
+                                    }
+                                    
+                                    val userActualizado = user.copy(
+                                        racha = nuevaRacha,
+                                        puntosRacha = puntosExtra,
+                                        ultimaConexion = ahora
+                                    )
+                                    db.userDao().actualizarUsuario(userActualizado)
+                                    usuarioActual = userActualizado
+                                    loggedUserId = userActualizado.id
+                                    esInvitado = false
+                                    pantallaActual = "home"
+                                    selectedTab = 0
+                                }
+                            },
+                            onGuestLogin = {
+                                usuarioActual = null
+                                loggedUserId = -1
+                                esInvitado = true
+                                pantallaActual = "home"
+                                selectedTab = 0
+                            },
+                            onIrARegistro = { pantallaActual = "registro" },
+                            onRecuperarPassword = { /* UI Only */ }
+                        )
+                        "registro" -> PantallaRegistro(
+                            onRegistroSuccess = { user ->
+                                usuarioActual = user
+                                loggedUserId = user.id
+                                esInvitado = false
+                                pantallaActual = "home"
+                                selectedTab = 0
+                            },
+                            onIrALogin = { pantallaActual = "login" }
+                        )
+                        "home" -> PantallaInicio(
+                            nombreUsuario = nombreAMostrar,
+                            esInvitado = esInvitado,
+                            usuarioReal = usuarioActual, // Pasar el objeto real
+                            onColores = { pantallaActual = "colores" },
+                            onNumeros = { pantallaActual = "numeros" },
+                            onCuestionario = { pantallaActual = "cuestionario" },
+                            onShowRestriccion = {
+                                scope.launch {
+                                    snackbarHostState.showSnackbar("El modo invitado no permite cuestionarios.")
+                                }
+                            },
+                            onIrALogin = { pantallaActual = "login" },
+                            onIrAPerfil = {
+                                selectedTab = 1
+                                pantallaActual = "perfil"
+                            }
+                        )
+                        "perfil" -> Box(Modifier.padding(paddingValues)) { 
+                            PantallaPerfil(
+                                nombreUsuario = nombreAMostrar,
+                                esInvitado = esInvitado,
+                                usuarioReal = usuarioActual, // Pasar el objeto real
+                                onLogout = {
+                                    pantallaActual = "login"
+                                    usuarioActual = null
+                                    loggedUserId = -1
+                                    esInvitado = false
+                                },
+                                onIrALogin = {
+                                    pantallaActual = "login"
+                                }
+                            )
+                        }
+                        "colores" -> PantallaColores(
+                            onVolver = { 
+                                // Incrementar lecciones si no es invitado
+                                if (!esInvitado && usuarioActual != null) {
+                                    scope.launch {
+                                        val db = AppDatabase.getDatabase(context)
+                                        val u = usuarioActual!!
+                                        val actualizado = u.copy(leccionesTotales = u.leccionesTotales + 1)
+                                        db.userDao().actualizarUsuario(actualizado)
+                                        usuarioActual = actualizado
+                                    }
+                                }
+                                pantallaActual = "home" 
+                            },
+                            limite = if (esInvitado) 3 else null
+                        )
+                        "numeros" -> PantallaNumeros(
+                            onVolver = { 
+                                // Incrementar lecciones si no es invitado
+                                if (!esInvitado && usuarioActual != null) {
+                                    scope.launch {
+                                        val db = AppDatabase.getDatabase(context)
+                                        val u = usuarioActual!!
+                                        val actualizado = u.copy(leccionesTotales = u.leccionesTotales + 1)
+                                        db.userDao().actualizarUsuario(actualizado)
+                                        usuarioActual = actualizado
+                                    }
+                                }
+                                pantallaActual = "home" 
+                            },
+                            limite = if (esInvitado) 5 else null
+                        )
+                        "cuestionario" -> PantallaCuestionario(
+                            onVolver = { pantallaActual = "home" },
+                            onFinish = { correctas, totales ->
+                                if (!esInvitado && usuarioActual != null) {
+                                    scope.launch {
+                                        val db = AppDatabase.getDatabase(context)
+                                        val u = usuarioActual!!
+                                        val nuevasLecciones = u.leccionesTotales + 1
+                                        val actualizado = u.copy(
+                                            leccionesTotales = nuevasLecciones,
+                                            respuestasCorrectas = u.respuestasCorrectas + correctas,
+                                            preguntasTotales = u.preguntasTotales + totales,
+                                            nivel = (nuevasLecciones / 5) + 1
+                                        )
+                                        db.userDao().actualizarUsuario(actualizado)
+                                        usuarioActual = actualizado
+                                    }
+                                }
+                            }
+                        )
+                    }
+                }
             }
-        },
-        label = "transicion_pantallas"
-    ) { pantalla ->
-        when (pantalla) {
-            "inicio" -> PantallaInicio(
-                onColores = { pantallaActual = "colores" },
-                onNumeros = { pantallaActual = "numeros" },
-                onCuestionario = { pantallaActual = "cuestionario" }
-            )
-            "colores" -> PantallaColores(
-                onVolver = { pantallaActual = "inicio" }
-            )
-            "numeros" -> PantallaNumeros(
-                onVolver = { pantallaActual = "inicio" }
-            )
-            "cuestionario" -> PantallaCuestionario(
-                onVolver = { pantallaActual = "inicio" }
-            )
+
+            // NAVBAR FLOTANTE (ESTILO CÁPSULA + GLOW)
+            if (pantallaActual == "home" || pantallaActual == "perfil") {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 24.dp, start = 32.dp, end = 32.dp)
+                        .height(70.dp)
+                        .shadow(20.dp, RoundedCornerShape(35.dp))
+                        .clip(RoundedCornerShape(35.dp))
+                        .background(Color(0xFF1E1E1E).copy(alpha = 0.95f))
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceAround
+                    ) {
+                        NavItem(
+                            icon = Icons.Default.Home,
+                            label = "Inicio",
+                            isSelected = selectedTab == 0,
+                            onClick = { 
+                                selectedTab = 0
+                                pantallaActual = "home"
+                            }
+                        )
+                        NavItem(
+                            icon = Icons.Default.Person,
+                            label = "Perfil",
+                            isSelected = selectedTab == 1,
+                            onClick = { 
+                                selectedTab = 1
+                                pantallaActual = "perfil"
+                            }
+                        )
+                    }
+                }
+            }
         }
     }
 }
 
-// PREVIEWS
-
-
-@Preview(name = "Pantalla de Inicio", showBackground = true, showSystemUi = true)
 @Composable
-fun PreviewInicio() {
-    LoroLingoTheme {
-        PantallaInicio(onColores = {}, onNumeros = {}, onCuestionario = {})
-    }
-}
+fun NavItem(
+    icon: ImageVector,
+    label: String,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    val colorCian = Color(0xFF00F5D4)
+    val colorGris = Color(0xFFAAAAAA)
+    
+    val scale by animateFloatAsState(if (isSelected) 1.2f else 1.0f, label = "navScale")
+    val color by animateColorAsState(if (isSelected) colorCian else colorGris, label = "navColor")
 
-@Preview(name = "Pantalla de Colores", showBackground = true, showSystemUi = true)
-@Composable
-fun PreviewColores() {
-    LoroLingoTheme {
-        PantallaColores(onVolver = {})
-    }
-}
-
-@Preview(name = "Pantalla de Números", showBackground = true, showSystemUi = true)
-@Composable
-fun PreviewNumeros() {
-    LoroLingoTheme {
-        PantallaNumeros(onVolver = {})
-    }
-}
-
-@Preview(name = "Pantalla de Cuestionario", showBackground = true, showSystemUi = true)
-@Composable
-fun PreviewCuestionario() {
-    LoroLingoTheme {
-        PantallaCuestionario(onVolver = {})
+    Column(
+        modifier = Modifier
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null
+            ) { onClick() }
+            .padding(8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Icon(
+                imageVector = icon,
+                contentDescription = label,
+                tint = color,
+                modifier = Modifier.size(26.dp).scale(scale)
+            )
+        }
+        Text(
+            text = label,
+            color = color,
+            fontSize = 10.sp,
+            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+        )
     }
 }

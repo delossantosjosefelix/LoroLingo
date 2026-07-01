@@ -9,6 +9,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -19,12 +20,14 @@ import com.example.lorolingo.ui.components.CardColor
 import com.example.lorolingo.ui.theme.LoroLingoTheme
 
 @Composable
-fun PantallaColores(onVolver: () -> Unit) {
+fun PantallaColores(onVolver: () -> Unit, limite: Int? = null) {
     val colorFondo  = Color(0xFF121212)
+    val colorDegradado = Color(0xFF1A1A2E)
     val colorCian   = Color(0xFF00F5D4)
     val colorGris   = Color(0xFFAAAAAA)
+    val colorNaranja = Color(0xFFE57A0D)
 
-    val listaColores = listOf(
+    val listaColoresCompleta = listOf(
         Triple("Rojo",      "Red",     Color(0xFFE53935)),
         Triple("Azul",      "Blue",    Color(0xFF1E88E5)),
         Triple("Amarillo",  "Yellow",  Color(0xFFFDD835)),
@@ -39,87 +42,55 @@ fun PantallaColores(onVolver: () -> Unit) {
         Triple("Plateado",  "Silver",  Color(0xFFB0BEC5)),
         Triple("Dorado",    "Gold",    Color(0xFFFFD700))
     )
+    
+    val listaColores = if (limite != null) listaColoresCompleta.take(limite) else listaColoresCompleta
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(colorFondo)
+            .background(Brush.radialGradient(colors = listOf(colorDegradado, colorFondo), radius = 2000f))
     ) {
-        // ENCABEZADO FIJO
-        Column(
-            modifier            = Modifier
-                .fillMaxWidth()
-                .padding(24.dp, 24.dp, 24.dp, 8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text          = "Colores",
-                fontSize      = 32.sp,
-                fontWeight    = FontWeight.Bold,
-                color         = colorCian,
-                letterSpacing = 1.sp,
-                modifier      = Modifier.fillMaxWidth(),
-                textAlign     = TextAlign.Center
-            )
-            Text(
-                text      = "Colors in English",
-                fontSize  = 14.sp,
-                color     = colorGris,
-                modifier  = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center
-            )
-        }
-
-        // CONTENIDO SCROLLABLE
-        LazyColumn(
-            modifier            = Modifier
-                .weight(1f)
-                .padding(horizontal = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            contentPadding      = PaddingValues(vertical = 16.dp)
-        ) {
-            items(listaColores) { (espanol, ingles, colorVisual) ->
-                CardColor(
-                    espanol      = espanol,
-                    ingles       = ingles,
-                    colorVisual  = colorVisual
-                )
-            }
-        }
-
-        // BOTÓN FIJO AL FINAL
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(colorFondo)
-                .padding(24.dp)
-        ) {
-            Button(
-                onClick  = onVolver,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp),
-                shape  = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = colorCian
-                )
+        Column(modifier = Modifier.fillMaxSize()) {
+            // ENCABEZADO
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(24.dp, 40.dp, 24.dp, 8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(
-                    text       = "Volver al Inicio",
-                    fontSize   = 15.sp,
-                    fontWeight = FontWeight.Bold,
-                    color      = Color(0xFF121212)
-                )
+                Text(text = "Colores", fontSize = 32.sp, fontWeight = FontWeight.Bold, color = colorCian, textAlign = TextAlign.Center)
+                Text(text = "Colors in English", fontSize = 14.sp, color = colorGris, textAlign = TextAlign.Center)
+                if (limite != null) {
+                    Text(text = "Modo Invitado", color = colorNaranja, fontSize = 12.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 8.dp))
+                }
+            }
+
+            // CONTENIDO
+            LazyColumn(
+                modifier = Modifier.weight(1f).padding(horizontal = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                contentPadding = PaddingValues(vertical = 16.dp)
+            ) {
+                items(listaColores) { (espanol, ingles, colorVisual) ->
+                    CardColor(espanol = espanol, ingles = ingles, colorVisual = colorVisual)
+                }
+                if (limite != null) {
+                    item {
+                        Text(text = "Inicia sesión para ver los ${listaColoresCompleta.size - limite} restantes.", color = colorGris, fontSize = 13.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(top = 16.dp))
+                    }
+                }
+            }
+
+            // BOTÓN
+            Box(modifier = Modifier.fillMaxWidth().padding(24.dp)) {
+                Button(onClick = onVolver, modifier = Modifier.fillMaxWidth().height(52.dp), shape = RoundedCornerShape(12.dp), colors = ButtonDefaults.buttonColors(containerColor = colorCian)) {
+                    Text(text = "Volver al Inicio", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color(0xFF121212))
+                }
             }
         }
     }
 }
 
-
-@Preview(name = "Pantalla de Colores", showBackground = true, showSystemUi = true)
+@Preview(showBackground = true)
 @Composable
 fun PreviewColores() {
-    LoroLingoTheme {
-        PantallaColores(onVolver = {})
-    }
+    LoroLingoTheme { PantallaColores(onVolver = {}) }
 }
