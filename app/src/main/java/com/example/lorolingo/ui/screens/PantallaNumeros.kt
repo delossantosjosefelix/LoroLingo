@@ -17,10 +17,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.lorolingo.ui.components.CardNumero
+import com.example.lorolingo.ui.components.StudyTimer
 import com.example.lorolingo.ui.theme.LoroLingoTheme
 
 @Composable
-fun PantallaNumeros(onVolver: () -> Unit, limite: Int? = null) {
+fun PantallaNumeros(
+    onVolver: () -> Unit, 
+    limite: Int? = null,
+    onSessionEarned: () -> Unit = {}
+) {
     val colorFondo  = Color(0xFF121212)
     val colorDegradado = Color(0xFF1A1A2E)
     val colorCian   = Color(0xFF00F5D4)
@@ -79,6 +84,10 @@ fun PantallaNumeros(onVolver: () -> Unit, limite: Int? = null) {
                 if (limite != null) {
                     Text(text = "Modo Invitado", color = colorNaranja, fontSize = 12.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 8.dp))
                 }
+            }
+
+            if (limite == null) {
+                StudyTimer(onSessionComplete = onSessionEarned)
             }
 
             // CONTENIDO

@@ -23,6 +23,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -34,6 +35,7 @@ import androidx.compose.ui.unit.sp
 import com.example.lorolingo.data.local.AppDatabase
 import com.example.lorolingo.data.local.entities.User
 import com.example.lorolingo.ui.theme.LoroLingoTheme
+import com.example.lorolingo.R
 import kotlinx.coroutines.launch
 import androidx.compose.ui.platform.LocalContext
 
@@ -56,6 +58,7 @@ fun PantallaRegistro(
     var repeatPassword by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
     var repeatPasswordVisible by remember { mutableStateOf(false) }
+    var genero by remember { mutableStateOf("Hombre") }
 
     val scrollState = rememberScrollState()
     val context = LocalContext.current
@@ -206,6 +209,35 @@ fun PantallaRegistro(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
+                // SELECCIÓN DE GÉNERO MEJORADA
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Box(modifier = Modifier.weight(1f)) {
+                        GeneroCard(
+                            label = "Hombre",
+                            isSelected = genero == "Hombre",
+                            onClick = { genero = "Hombre" },
+                            icon = Icons.Default.Male,
+                            colorCian = colorCian,
+                            avatarRes = R.drawable.img_profile // Placeholder
+                        )
+                    }
+                    Box(modifier = Modifier.weight(1f)) {
+                        GeneroCard(
+                            label = "Mujer",
+                            isSelected = genero == "Mujer",
+                            onClick = { genero = "Mujer" },
+                            icon = Icons.Default.Female,
+                            colorCian = colorCian,
+                            avatarRes = R.drawable.img_profile // Placeholder
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
                 OutlinedTextField(
                     value = password,
                     onValueChange = { password = it },
@@ -291,7 +323,16 @@ fun PantallaRegistro(
                         scope.launch {
                             try {
                                 val db = AppDatabase.getDatabase(context)
-                                val nuevoUsuario = User(nombre = nombreUsuario, gmail = email, password = password)
+                                val randomId = (1..4).random()
+                                val avatarName = if (genero == "Hombre") "male$randomId" else "female$randomId"
+                                
+                                val nuevoUsuario = User(
+                                    nombre = nombreUsuario, 
+                                    gmail = email, 
+                                    password = password,
+                                    genero = genero,
+                                    avatarId = avatarName
+                                )
                                 db.userDao().registrarUsuario(nuevoUsuario)
                                 // Recuperamos el usuario con su ID autogenerado
                                 val userGuardado = db.userDao().getUserByGmail(email)
@@ -340,6 +381,56 @@ fun PantallaRegistro(
                 
                 Spacer(modifier = Modifier.height(20.dp))
             }
+        }
+    }
+}
+
+@Composable
+fun GeneroCard(
+    label: String,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    icon: ImageVector,
+    colorCian: Color,
+    avatarRes: Int
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(100.dp)
+            .clickable { onClick() },
+        shape = RoundedCornerShape(20.dp),
+        color = if (isSelected) colorCian.copy(alpha = 0.1f) else Color(0xFF1E1E1E),
+        border = androidx.compose.foundation.BorderStroke(
+            width = if (isSelected) 2.dp else 1.dp,
+            color = if (isSelected) colorCian else Color(0xFF333333)
+        )
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.padding(8.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(if (isSelected) colorCian else Color(0xFF333333), CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = if (isSelected) Color(0xFF121212) else Color.White,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = label,
+                color = if (isSelected) colorCian else Color.White,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold
+            )
         }
     }
 }

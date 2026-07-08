@@ -37,47 +37,61 @@ import kotlinx.coroutines.launch
 data class Pregunta(
     val pregunta: String,
     val opciones: List<String>,
-    val respuestaCorrecta: String
+    val respuestaCorrecta: String,
+    val categoria: String // "colores", "numeros", "vocales"
 )
 
 private fun bancoDePreguntas(): List<Pregunta> {
     val preguntasColores = listOf(
-        Pregunta("¿Cómo se dice Rojo en inglés?", listOf("Red", "Blue", "Green", "Black"), "Red"),
-        Pregunta("¿Cómo se dice Azul en inglés?", listOf("Yellow", "Blue", "Pink", "Brown"), "Blue"),
-        Pregunta("¿Cómo se dice Verde en inglés?", listOf("Purple", "Orange", "Green", "White"), "Green"),
-        Pregunta("¿Cómo se dice Amarillo en inglés?", listOf("Black", "Yellow", "Orange", "Pink"), "Yellow"),
-        Pregunta("¿Cómo se dice Morado en inglés?", listOf("Purple", "Brown", "Blue", "White"), "Purple"),
-        Pregunta("¿Cómo se dice Negro en inglés?", listOf("White", "Black", "Gray", "Brown"), "Black"),
-        Pregunta("¿Cómo se dice Blanco en inglés?", listOf("White", "Silver", "Gray", "Gold"), "White"),
-        Pregunta("¿Cómo se dice Naranja en inglés?", listOf("Pink", "Purple", "Orange", "Brown"), "Orange"),
-        Pregunta("¿Cómo se dice Rosado en inglés?", listOf("Pink", "Red", "Purple", "Gold"), "Pink"),
-        Pregunta("¿Cómo se dice Marrón en inglés?", listOf("Gray", "Brown", "Black", "Silver"), "Brown"),
-        Pregunta("¿Cómo se dice Gris en inglés?", listOf("Silver", "Gray", "White", "Brown"), "Gray"),
-        Pregunta("¿Cómo se dice Plateado en inglés?", listOf("Gold", "Silver", "Gray", "White"), "Silver"),
-        Pregunta("¿Cómo se dice Dorado en inglés?", listOf("Gold", "Yellow", "Orange", "Silver"), "Gold"),
-        Pregunta("¿Qué color es 'Green' en español?", listOf("Verde", "Azul", "Gris", "Rosado"), "Verde"),
-        Pregunta("¿Qué color es 'Purple' en español?", listOf("Marrón", "Morado", "Negro", "Dorado"), "Morado")
+        Pregunta("¿Cómo se dice Rojo en inglés?", listOf("Red", "Blue", "Green", "Black"), "Red", "colores"),
+        Pregunta("¿Cómo se dice Azul en inglés?", listOf("Yellow", "Blue", "Pink", "Brown"), "Blue", "colores"),
+        Pregunta("¿Cómo se dice Verde en inglés?", listOf("Purple", "Orange", "Green", "White"), "Green", "colores"),
+        Pregunta("¿Cómo se dice Amarillo en inglés?", listOf("Black", "Yellow", "Orange", "Pink"), "Yellow", "colores"),
+        Pregunta("¿Cómo se dice Morado en inglés?", listOf("Purple", "Brown", "Blue", "White"), "Purple", "colores"),
+        Pregunta("¿Cómo se dice Negro en inglés?", listOf("White", "Black", "Gray", "Brown"), "Black", "colores"),
+        Pregunta("¿Cómo se dice Blanco en inglés?", listOf("White", "Silver", "Gray", "Gold"), "White", "colores"),
+        Pregunta("¿Cómo se dice Naranja en inglés?", listOf("Pink", "Purple", "Orange", "Brown"), "Orange", "colores"),
+        Pregunta("¿Cómo se dice Rosado en inglés?", listOf("Pink", "Red", "Purple", "Gold"), "Pink", "colores"),
+        Pregunta("¿Cómo se dice Marrón en inglés?", listOf("Gray", "Brown", "Black", "Silver"), "Brown", "colores"),
+        Pregunta("¿Cómo se dice Gris en inglés?", listOf("Silver", "Gray", "White", "Brown"), "Gray", "colores"),
+        Pregunta("¿Cómo se dice Plateado en inglés?", listOf("Gold", "Silver", "Gray", "White"), "Silver", "colores"),
+        Pregunta("¿Cómo se dice Dorado en inglés?", listOf("Gold", "Yellow", "Orange", "Silver"), "Gold", "colores"),
+        Pregunta("¿Qué color es 'Green' en español?", listOf("Verde", "Azul", "Gris", "Rosado"), "Verde", "colores"),
+        Pregunta("¿Qué color es 'Purple' en español?", listOf("Marrón", "Morado", "Negro", "Dorado"), "Morado", "colores")
+    )
+
+    val preguntasVocales = listOf(
+        Pregunta("¿Cómo se pronuncia la 'A' en inglés?", listOf("Ei", "Ai", "Ah", "I"), "Ei", "vocales"),
+        Pregunta("¿Cómo se pronuncia la 'E' en inglés?", listOf("Eh", "I", "Ei", "U"), "I", "vocales"),
+        Pregunta("¿Cómo se pronuncia la 'I' en inglés?", listOf("I", "Ei", "Ai", "Ee"), "Ai", "vocales"),
+        Pregunta("¿Cómo se pronuncia la 'O' en inglés?", listOf("O", "Ou", "U", "Oi"), "Ou", "vocales"),
+        Pregunta("¿Cómo se pronuncia la 'U' en inglés?", listOf("U", "Iu", "Ei", "Ah"), "Iu", "vocales"),
+        Pregunta("¿Cuál es un ejemplo para la vocal 'A'?", listOf("Apple", "Elephant", "Island", "Owl"), "Apple", "vocales"),
+        Pregunta("¿Cuál es un ejemplo para la vocal 'E'?", listOf("Orange", "Egg", "Ukelele", "Alligator"), "Egg", "vocales"),
+        Pregunta("¿Cuál es un ejemplo para la vocal 'I'?", listOf("Ice Cream", "Apple", "Owl", "Egg"), "Ice Cream", "vocales"),
+        Pregunta("¿Cuál es un ejemplo para la vocal 'O'?", listOf("Owl", "Elephant", "Ukelele", "Island"), "Owl", "vocales"),
+        Pregunta("¿Cuál es un ejemplo para la vocal 'U'?", listOf("Uranus", "Apple", "Orange", "Egg"), "Uranus", "vocales")
     )
 
     val preguntasNumeros = listOf(
-        Pregunta("¿Cómo se escribe el número 1 en inglés?", listOf("One", "Two", "Three", "Four"), "One"),
-        Pregunta("¿Cómo se escribe el número 2 en inglés?", listOf("Two", "One", "Three", "Six"), "Two"),
-        Pregunta("¿Cómo se escribe el número 3 en inglés?", listOf("Three", "Thirteen", "Two", "Eight"), "Three"),
-        Pregunta("¿Cómo se escribe el número 4 en inglés?", listOf("Forty", "Four", "Fourteen", "Five"), "Four"),
-        Pregunta("¿Cómo se escribe el número 5 en inglés?", listOf("Four", "Six", "Five", "Seven"), "Five"),
-        Pregunta("¿Cómo se escribe el número 6 en inglés?", listOf("Sixty", "Sixteen", "Six", "Seven"), "Six"),
-        Pregunta("¿Cómo se escribe el número 7 en inglés?", listOf("Seven", "Seventeen", "Seventy", "Six"), "Seven"),
-        Pregunta("¿Cómo se escribe el número 8 en inglés?", listOf("Eighteen", "Eight", "Eighty", "Nine"), "Eight"),
-        Pregunta("¿Cómo se escribe el número 9 en inglés?", listOf("Ninety", "Nineteen", "Nine", "Ten"), "Nine"),
-        Pregunta("¿Cómo se escribe el número 10 en inglés?", listOf("Ten", "Nine", "Eight", "Eleven"), "Ten"),
-        Pregunta("¿Cómo se escribe el número 15 en inglés?", listOf("Fifteen", "Fifty", "Fifteenth", "Five"), "Fifteen"),
-        Pregunta("¿Cómo se escribe el número 20 en inglés?", listOf("Thirty", "Twenty", "Forty", "Ten"), "Twenty"),
-        Pregunta("¿Cómo se escribe el número 30 en inglés?", listOf("Thirteen", "Thirty", "Forty", "Three"), "Thirty"),
-        Pregunta("¿Cómo se escribe el número 50 en inglés?", listOf("Fifteen", "Fifty", "Five", "Fifty-One"), "Fifty"),
-        Pregunta("¿Cómo se escribe el número 100 en inglés?", listOf("One Thousand", "One Hundred", "Hundred One", "Ten Hundred"), "One Hundred")
+        Pregunta("¿Cómo se escribe el número 1 en inglés?", listOf("One", "Two", "Three", "Four"), "One", "numeros"),
+        Pregunta("¿Cómo se escribe el número 2 en inglés?", listOf("Two", "One", "Three", "Six"), "Two", "numeros"),
+        Pregunta("¿Cómo se escribe el número 3 en inglés?", listOf("Three", "Thirteen", "Two", "Eight"), "Three", "numeros"),
+        Pregunta("¿Cómo se escribe el número 4 en inglés?", listOf("Forty", "Four", "Fourteen", "Five"), "Four", "numeros"),
+        Pregunta("¿Cómo se escribe el número 5 en inglés?", listOf("Four", "Six", "Five", "Seven"), "Five", "numeros"),
+        Pregunta("¿Cómo se escribe el número 6 en inglés?", listOf("Sixty", "Sixteen", "Six", "Seven"), "Six", "numeros"),
+        Pregunta("¿Cómo se escribe el número 7 en inglés?", listOf("Seven", "Seventeen", "Seventy", "Six"), "Seven", "numeros"),
+        Pregunta("¿Cómo se escribe el número 8 en inglés?", listOf("Eighteen", "Eight", "Eighty", "Nine"), "Eight", "numeros"),
+        Pregunta("¿Cómo se escribe el número 9 en inglés?", listOf("Ninety", "Nineteen", "Nine", "Ten"), "Nine", "numeros"),
+        Pregunta("¿Cómo se escribe el número 10 en inglés?", listOf("Ten", "Nine", "Eight", "Eleven"), "Ten", "numeros"),
+        Pregunta("¿Cómo se escribe el número 15 en inglés?", listOf("Fifteen", "Fifty", "Fifteenth", "Five"), "Fifteen", "numeros"),
+        Pregunta("¿Cómo se escribe el número 20 en inglés?", listOf("Thirty", "Twenty", "Forty", "Ten"), "Twenty", "numeros"),
+        Pregunta("¿Cómo se escribe el número 30 en inglés?", listOf("Thirteen", "Thirty", "Forty", "Three"), "Thirty", "numeros"),
+        Pregunta("¿Cómo se escribe el número 50 en inglés?", listOf("Fifteen", "Fifty", "Five", "Fifty-One"), "Fifty", "numeros"),
+        Pregunta("¿Cómo se escribe el número 100 en inglés?", listOf("One Thousand", "One Hundred", "Hundred One", "Ten Hundred"), "One Hundred", "numeros")
     )
 
-    return preguntasColores + preguntasNumeros
+    return preguntasColores + preguntasNumeros + preguntasVocales
 }
 
 private fun escogerPreguntasAleatorias(cantidad: Int): List<Pregunta> {
@@ -87,7 +101,7 @@ private fun escogerPreguntasAleatorias(cantidad: Int): List<Pregunta> {
 @Composable
 fun PantallaCuestionario(
     onVolver: () -> Unit,
-    onFinish: (Int, Int) -> Unit = { _, _ -> }
+    onFinish: (Int, Int, Map<String, Int>) -> Unit = { _, _, _ -> }
 ) {
     val colorFondo   = Color(0xFF121212)
     val colorFondo2  = Color(0xFF1E1E1E)
@@ -140,7 +154,7 @@ fun PantallaCuestionario(
                 textAlign     = TextAlign.Center
             )
             Text(
-                text      = "Colores y Números",
+                text      = "Colores, Números y Vocales",
                 fontSize  = 14.sp,
                 color     = colorGris,
                 modifier  = Modifier.fillMaxWidth(),
@@ -323,16 +337,19 @@ fun PantallaCuestionario(
                     Button(
                         onClick = {
                             var score = 0
+                            val correctasPorCategoria = mutableMapOf("colores" to 0, "numeros" to 0, "vocales" to 0)
+                            
                             preguntas.forEachIndexed { index, pregunta ->
                                 if (respuestas[index] == pregunta.respuestaCorrecta) {
                                     score++
+                                    correctasPorCategoria[pregunta.categoria] = (correctasPorCategoria[pregunta.categoria] ?: 0) + 1
                                 }
                             }
                             puntaje = score
                             mostrarResultado = true
                             
-                            // Notificar resultados
-                            onFinish(score, preguntas.size)
+                            // Notificar resultados con desglose por categoría
+                            onFinish(score, preguntas.size, correctasPorCategoria)
 
                             // Auto-scroll para mostrar el resultado arriba de los botones
                             coroutineScope.launch {

@@ -40,10 +40,12 @@ import com.example.lorolingo.R
 import com.example.lorolingo.data.local.entities.User
 import com.example.lorolingo.ui.components.CardColor
 import com.example.lorolingo.ui.components.CardNumero
+import com.example.lorolingo.ui.components.CardVocal
 import com.example.lorolingo.ui.theme.LoroLingoTheme
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlinx.coroutines.launch
+import androidx.compose.ui.platform.LocalContext
 
 // Forma para la burbuja del Loro (Colita a la izquierda, apuntando al loro)
 val BubbleCoachShape = GenericShape { size, _ ->
@@ -71,6 +73,7 @@ fun PantallaInicio(
     usuarioReal: User? = null,
     onColores: () -> Unit,
     onNumeros: () -> Unit,
+    onVocales: () -> Unit,
     onCuestionario: () -> Unit,
     onShowRestriccion: () -> Unit,
     onIrALogin: () -> Unit,
@@ -136,11 +139,22 @@ fun PantallaInicio(
         }
     }
 
+    val listaVocalesCompleta = remember {
+        listOf(
+            Triple("A", "Ei", Color(0xFFE53935)), Triple("E", "I", Color(0xFF43A047)),
+            Triple("I", "Ai", Color(0xFF1E88E5)), Triple("O", "Ou", Color(0xFFFB8C00)),
+            Triple("U", "Iu", Color(0xFFFDD835))
+        )
+    }
+
     val resultadosColores = (if (esInvitado) listaColoresCompleta.take(3) else listaColoresCompleta).filter { 
         it.first.contains(searchText, ignoreCase = true) || it.second.contains(searchText, ignoreCase = true)
     }
     val resultadosNumeros = (if (esInvitado) listaNumerosCompleta.take(5) else listaNumerosCompleta).filter { 
         it.first.toString() == searchText || it.second.contains(searchText, ignoreCase = true) || it.third.contains(searchText, ignoreCase = true)
+    }
+    val resultadosVocales = (if (esInvitado) listaVocalesCompleta.take(2) else listaVocalesCompleta).filter { 
+        it.first.contains(searchText, ignoreCase = true)
     }
 
     // --- DIÁLOGOS DE EXPLICACIÓN MEJORADOS (ESTILO PREMIUM) ---
@@ -351,8 +365,16 @@ fun PantallaInicio(
                             .clickable { if (esInvitado) onIrALogin() else onIrAPerfil() },
                         contentAlignment = Alignment.Center
                     ) {
+                        val currentContext = LocalContext.current
+                        val avatarRes = if (usuarioReal != null) {
+                            val id = currentContext.resources.getIdentifier(usuarioReal.avatarId, "drawable", currentContext.packageName)
+                            if (id != 0) id else R.drawable.img_profile
+                        } else {
+                            R.drawable.img_profile
+                        }
+
                         Image(
-                            painter = painterResource(id = R.drawable.img_profile),
+                            painter = painterResource(id = avatarRes),
                             contentDescription = "Foto de perfil",
                             modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.Crop,
@@ -387,7 +409,7 @@ fun PantallaInicio(
                     value = searchText,
                     onValueChange = { searchText = it },
                     modifier = Modifier.fillMaxWidth().shadow(10.dp, RoundedCornerShape(28.dp)),
-                    placeholder = { Text("Busca colores o números...", color = colorGris, fontSize = 14.sp) },
+                    placeholder = { Text("Busca colores, números o vocales...", color = colorGris, fontSize = 14.sp) },
                     leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = colorCian) },
                     trailingIcon = {
                         if (isSearching) {
@@ -415,7 +437,7 @@ fun PantallaInicio(
                     Text("Resultados", color = colorCian, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    if (resultadosColores.isEmpty() && resultadosNumeros.isEmpty()) {
+                    if (resultadosColores.isEmpty() && resultadosNumeros.isEmpty() && resultadosVocales.isEmpty()) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
                             Image(
                                 painter = painterResource(id = R.drawable.img_lorotriste),
@@ -437,6 +459,29 @@ fun PantallaInicio(
                         resultadosNumeros.forEach { (num, esp, ing) ->
                             CardNumero(num, esp, ing)
                             Spacer(modifier = Modifier.height(10.dp))
+                        }
+                        resultadosVocales.forEach { (letra, pron, col) ->
+                            // Buscamos los datos completos de la vocal para la tarjeta
+                            val vocalFull = listOf(
+                                VocalData("A", "Ei", "Apple", R.drawable.apple, "Alligator", R.drawable.alligator, Color(0xFFE53935)),
+                                VocalData("E", "I", "Egg", R.drawable.egg, "Elephant", R.drawable.elephant, Color(0xFF43A047)),
+                                VocalData("I", "Ai", "Ice Cream", R.drawable.icecream, "Island", R.drawable.island, Color(0xFF1E88E5)),
+                                VocalData("O", "Ou", "Orange", R.drawable.orange, "Owl", R.drawable.owl, Color(0xFFFB8C00)),
+                                VocalData("U", "Iu", "Ukelele", R.drawable.ukelele, "Uranus", R.drawable.uranus, Color(0xFFFDD835))
+                            ).find { it.letra == letra }
+                            
+                            if (vocalFull != null) {
+                                CardVocal(
+                                    vocal = vocalFull.letra,
+                                    pronunciacion = vocalFull.pronunciacion,
+                                    ejemplo1 = vocalFull.ejemplo1,
+                                    icono1 = vocalFull.icon1,
+                                    ejemplo2 = vocalFull.ejemplo2,
+                                    icono2 = vocalFull.icon2,
+                                    colorVisual = vocalFull.color
+                                )
+                                Spacer(modifier = Modifier.height(10.dp))
+                            }
                         }
                     }
                     Spacer(modifier = Modifier.height(100.dp))
@@ -480,17 +525,20 @@ fun PantallaInicio(
                     Spacer(modifier = Modifier.height(24.dp))
 
                     // NIVEL DINÁMICO
+                    val sesionBloqueada = usuarioReal?.sesionBloqueada ?: false
+                    val sesionesEnEsteNivel = if (sesionBloqueada) 5 else (usuarioReal?.sesionesTotales ?: 0) % 5
                     StatusCardPremium(
-                        label = "Nivel Actual",
-                        value = if (esInvitado) "Nvl. 0" else "Nvl. ${usuarioReal?.nivel ?: 1}",
-                        icon = Icons.Default.AutoAwesome,
-                        colorMain = colorAzul,
+                        label = if (sesionBloqueada) "NIVEL BLOQUEADO" else "Nivel Actual",
+                        value = if (esInvitado) "Nvl. 0" else "Nvl. ${usuarioReal?.nivel ?: 0}",
+                        icon = if (sesionBloqueada) Icons.Default.Lock else Icons.Default.AutoAwesome,
+                        colorMain = if (sesionBloqueada) colorRojo else colorAzul,
                         modifier = Modifier.fillMaxWidth().clickable { showLevelDialog = true },
-                        progreso = if (esInvitado) 0f else {
-                            val leccionesEnEsteNivel = (usuarioReal?.leccionesTotales ?: 0) % 5
-                            leccionesEnEsteNivel / 5f
-                        },
-                        sublabel = if (esInvitado) "" else "Faltan ${5 - ((usuarioReal?.leccionesTotales ?: 0) % 5)} lecciones para el sig. nivel"
+                        progreso = if (esInvitado) 0f else sesionesEnEsteNivel / 5f,
+                        sublabel = when {
+                            esInvitado -> ""
+                            sesionBloqueada -> "¡Ya cumples con los requisitos! Realiza el examen de ascenso."
+                            else -> "Faltan ${5 - ((usuarioReal?.sesionesTotales ?: 0) % 5)} sesiones para el sig. nivel"
+                        }
                     )
 
                     Spacer(modifier = Modifier.height(32.dp))
@@ -500,11 +548,14 @@ fun PantallaInicio(
 
                     ModernLessonCard("Colores", "Aprende los colores", Icons.Default.Palette, Brush.horizontalGradient(listOf(colorAzul, colorAzul.copy(alpha = 0.6f))), onColores)
                     Spacer(modifier = Modifier.height(12.dp))
+                    ModernLessonCard("Vocales", "A, E, I, O, U en inglés", Icons.Default.Translate, Brush.horizontalGradient(listOf(Color(0xFF8E24AA), Color(0xFF8E24AA).copy(alpha = 0.6f))), onVocales)
+                    Spacer(modifier = Modifier.height(12.dp))
                     ModernLessonCard("Números", "Cuenta del 1 al 100", Icons.Default.Filter1, Brush.horizontalGradient(listOf(colorNaranja, colorNaranja.copy(alpha = 0.6f))), onNumeros)
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    // CUESTIONARIO
+                    // CUESTIONARIO / EXAMEN DE ASCENSO
+                    val esExamen = usuarioReal?.examenDisponible == true
                     Surface(
                         modifier = Modifier.fillMaxWidth().height(70.dp).clickable { 
                             if (esInvitado) {
@@ -513,15 +564,25 @@ fun PantallaInicio(
                                 }
                             } else onCuestionario() 
                         },
-                        color = if (esInvitado) colorFondoCard else colorCian,
-                        shape = RoundedCornerShape(20.dp)
+                        color = if (esInvitado) colorFondoCard else if (esExamen) Color(0xFFFFD700) else colorCian,
+                        shape = RoundedCornerShape(20.dp),
+                        border = if (esExamen) androidx.compose.foundation.BorderStroke(2.dp, Color.White) else null
                     ) {
                         Row(modifier = Modifier.padding(horizontal = 20.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.Quiz, null, tint = if (esInvitado) colorGris else colorFondo)
+                            Icon(
+                                imageVector = if (esExamen) Icons.Default.MilitaryTech else Icons.Default.Quiz, 
+                                null, 
+                                tint = if (esInvitado) colorGris else colorFondo
+                            )
                             Spacer(modifier = Modifier.width(16.dp))
-                            Text("Cuestionario de Evaluación", color = if (esInvitado) colorBlanco else colorFondo, fontWeight = FontWeight.Bold)
+                            Text(
+                                text = if (esExamen) "¡EXAMEN DE ASCENSO!" else "Cuestionario de Evaluación", 
+                                color = if (esInvitado) colorBlanco else colorFondo, 
+                                fontWeight = FontWeight.Black
+                            )
                             Spacer(modifier = Modifier.weight(1f))
                             if (esInvitado) Icon(Icons.Default.Lock, null, tint = colorGris)
+                            else if (esExamen) Icon(Icons.Default.AutoAwesome, null, tint = colorFondo)
                         }
                     }
 

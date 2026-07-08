@@ -57,6 +57,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.androidx.core.splashscreen)
     
     // Room
     implementation(libs.androidx.room.runtime)

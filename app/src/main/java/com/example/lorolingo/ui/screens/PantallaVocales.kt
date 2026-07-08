@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -16,39 +18,32 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.lorolingo.ui.components.CardColor
+import com.example.lorolingo.R
+import com.example.lorolingo.ui.components.CardVocal
 import com.example.lorolingo.ui.components.StudyTimer
 import com.example.lorolingo.ui.theme.LoroLingoTheme
 
 @Composable
-fun PantallaColores(
+fun PantallaVocales(
     onVolver: () -> Unit, 
     limite: Int? = null,
     onSessionEarned: () -> Unit = {}
 ) {
-    val colorFondo  = Color(0xFF121212)
+    val colorFondo = Color(0xFF121212)
     val colorDegradado = Color(0xFF1A1A2E)
-    val colorCian   = Color(0xFF00F5D4)
-    val colorGris   = Color(0xFFAAAAAA)
+    val colorCian = Color(0xFF00F5D4)
+    val colorGris = Color(0xFFAAAAAA)
     val colorNaranja = Color(0xFFE57A0D)
 
-    val listaColoresCompleta = listOf(
-        Triple("Rojo",      "Red",     Color(0xFFE53935)),
-        Triple("Azul",      "Blue",    Color(0xFF1E88E5)),
-        Triple("Amarillo",  "Yellow",  Color(0xFFFDD835)),
-        Triple("Verde",     "Green",   Color(0xFF43A047)),
-        Triple("Negro",     "Black",   Color(0xFF212121)),
-        Triple("Blanco",    "White",   Color(0xFFFFFFFF)),
-        Triple("Naranja",   "Orange",  Color(0xFFFB8C00)),
-        Triple("Morado",    "Purple",  Color(0xFF8E24AA)),
-        Triple("Rosado",    "Pink",    Color(0xFFE91E8C)),
-        Triple("Marrón",    "Brown",   Color(0xFF6D4C41)),
-        Triple("Gris",      "Gray",    Color(0xFF757575)),
-        Triple("Plateado",  "Silver",  Color(0xFFB0BEC5)),
-        Triple("Dorado",    "Gold",    Color(0xFFFFD700))
+    val vocalesCompleta = listOf(
+        VocalData("A", "Ei", "Apple", R.drawable.apple, "Alligator", R.drawable.alligator, Color(0xFFE53935)),
+        VocalData("E", "I", "Egg", R.drawable.egg, "Elephant", R.drawable.elephant, Color(0xFF43A047)),
+        VocalData("I", "Ai", "Ice Cream", R.drawable.icecream, "Island", R.drawable.island, Color(0xFF1E88E5)),
+        VocalData("O", "Ou", "Orange", R.drawable.orange, "Owl", R.drawable.owl, Color(0xFFFB8C00)),
+        VocalData("U", "Iu", "Ukelele", R.drawable.ukelele, "Uranus", R.drawable.uranus, Color(0xFFFDD835))
     )
-    
-    val listaColores = if (limite != null) listaColoresCompleta.take(limite) else listaColoresCompleta
+
+    val listaVocales = if (limite != null) vocalesCompleta.take(limite) else vocalesCompleta
 
     Box(
         modifier = Modifier
@@ -61,8 +56,8 @@ fun PantallaColores(
                 modifier = Modifier.fillMaxWidth().padding(24.dp, 40.dp, 24.dp, 8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(text = "Colores", fontSize = 32.sp, fontWeight = FontWeight.Bold, color = colorCian, textAlign = TextAlign.Center)
-                Text(text = "Colors in English", fontSize = 14.sp, color = colorGris, textAlign = TextAlign.Center)
+                Text(text = "Vocales", fontSize = 32.sp, fontWeight = FontWeight.Bold, color = colorCian, textAlign = TextAlign.Center)
+                Text(text = "Vowels in English", fontSize = 14.sp, color = colorGris, textAlign = TextAlign.Center)
                 if (limite != null) {
                     Text(text = "Modo Invitado", color = colorNaranja, fontSize = 12.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 8.dp))
                 }
@@ -78,12 +73,20 @@ fun PantallaColores(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 contentPadding = PaddingValues(vertical = 16.dp)
             ) {
-                items(listaColores) { (espanol, ingles, colorVisual) ->
-                    CardColor(espanol = espanol, ingles = ingles, colorVisual = colorVisual)
+                items(listaVocales) { vocal ->
+                    CardVocal(
+                        vocal = vocal.letra,
+                        pronunciacion = vocal.pronunciacion,
+                        ejemplo1 = vocal.ejemplo1,
+                        icono1 = vocal.icon1,
+                        ejemplo2 = vocal.ejemplo2,
+                        icono2 = vocal.icon2,
+                        colorVisual = vocal.color
+                    )
                 }
                 if (limite != null) {
                     item {
-                        Text(text = "Inicia sesión para ver los ${listaColoresCompleta.size - limite} restantes.", color = colorGris, fontSize = 13.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(top = 16.dp))
+                        Text(text = "Inicia sesión para ver las restantes.", color = colorGris, fontSize = 13.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(top = 16.dp))
                     }
                 }
             }
@@ -98,8 +101,10 @@ fun PantallaColores(
     }
 }
 
+data class VocalData(val letra: String, val pronunciacion: String, val ejemplo1: String, val icon1: Int, val ejemplo2: String, val icon2: Int, val color: Color)
+
 @Preview(showBackground = true)
 @Composable
-fun PreviewColores() {
-    LoroLingoTheme { PantallaColores(onVolver = {}) }
+fun PreviewVocales() {
+    LoroLingoTheme { PantallaVocales(onVolver = {}) }
 }

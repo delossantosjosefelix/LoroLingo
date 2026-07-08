@@ -22,9 +22,18 @@ interface UserDao {
     @Query("SELECT * FROM users WHERE gmail = :gmail")
     suspend fun getUserByGmail(gmail: String): User?
 
+    @Query("SELECT * FROM users WHERE nombre = :nombre LIMIT 1")
+    suspend fun getUserByName(nombre: String): User?
+
     @Update
     suspend fun actualizarUsuario(user: User)
 
     @Query("SELECT * FROM users WHERE id = :userId")
     suspend fun obtenerUsuarioPorId(userId: Int): User?
+
+    @Query("UPDATE users SET password = :newPassword WHERE id = :userId")
+    suspend fun actualizarPassword(userId: Int, newPassword: String)
+
+    @Query("DELETE FROM users WHERE id = :userId")
+    suspend fun eliminarUsuario(userId: Int)
 }

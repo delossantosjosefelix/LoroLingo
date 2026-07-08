@@ -15,7 +15,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -57,29 +56,9 @@ fun AppNavegacion() {
     var usuarioActual by remember { mutableStateOf<User?>(null) }
     var loggedUserId by rememberSaveable { mutableIntStateOf(-1) }
     var esInvitado by rememberSaveable { mutableStateOf(false) }
-    
+
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-
-    // ACTUALIZACIÓN MANUAL PARA CARMILLE (EJECUTAR UNA VEZ)
-    LaunchedEffect(Unit) {
-        val db = AppDatabase.getDatabase(context)
-        val carmille = db.userDao().getUserByName("Carmille") ?: db.userDao().getUserByName("Camille")
-        if (carmille != null) {
-            val actualizado = carmille.copy(
-                nivel = 5,
-                racha = 7,
-                leccionesTotales = 15,
-                progresoColores = 100,
-                progresoNumeros = 100,
-                progresoVocales = 100,
-                xpActual = 0,
-                examenDisponible = false,
-                sesionesTotales = 20
-            )
-            db.userDao().actualizarUsuario(actualizado)
-        }
-    }
 
     // Cargar usuario si hay un ID guardado
     LaunchedEffect(loggedUserId) {
@@ -88,60 +67,19 @@ fun AppNavegacion() {
             usuarioActual = db.userDao().obtenerUsuarioPorId(loggedUserId)
         }
     }
-    
-    // Guardar timestamp de inicio de sesión al entrar a una pantalla de lección
-    LaunchedEffect(pantallaActual) {
-        if (pantallaActual in listOf("colores", "numeros", "vocales") && !esInvitado && usuarioActual != null) {
-            val db = AppDatabase.getDatabase(context)
-            val u = usuarioActual!!
-            val ahora = System.currentTimeMillis()
-            val actualizado = u.copy(sessionInicioTimestamp = ahora)
-            db.userDao().actualizarUsuario(actualizado)
-            usuarioActual = actualizado
-        }
-    }
 
     val nombreAMostrar = if (esInvitado) "Invitado" else usuarioActual?.nombre ?: "Usuario"
-    
+
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
-    
+
     val snackbarHostState = remember { SnackbarHostState() }
 
     Scaffold(
-        snackbarHost = {
-            SnackbarHost(snackbarHostState) { data ->
-                Card(
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                        .fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E1E)),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF00F5D4).copy(alpha = 0.3f))
-                ) {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            Icons.Default.Info,
-                            contentDescription = null,
-                            tint = Color(0xFF00F5D4)
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(
-                            text = data.visuals.message,
-                            color = Color.White,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-                    }
-                }
-            }
-        },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = Color.Transparent
     ) { paddingValues ->
         Box(modifier = Modifier.fillMaxSize()) {
-            
+
             // CONTENIDO PRINCIPAL
             Box(modifier = Modifier.fillMaxSize()) {
                 AnimatedContent(
@@ -152,7 +90,7 @@ fun AppNavegacion() {
                         } else {
                             slideInHorizontally(animationSpec = tween(600)) { it } + fadeIn(tween(600))
                         }
-                        
+
                         val slideOut = if (targetState == "login" || targetState == "registro") {
                             slideOutHorizontally(animationSpec = tween(600)) { it } + fadeOut(tween(600))
                         } else {
@@ -170,19 +108,19 @@ fun AppNavegacion() {
                                     val db = AppDatabase.getDatabase(context)
                                     val ahora = System.currentTimeMillis()
                                     val unDiaMs = 24 * 60 * 60 * 1000L
-                                    
+
                                     val diff = ahora - user.ultimaConexion
                                     var nuevaRacha = when {
                                         diff < unDiaMs -> user.racha
                                         diff < 2 * unDiaMs -> user.racha + 1
                                         else -> 1
                                     }
-                                    
+
                                     var puntosExtra = user.puntosRacha
                                     if (nuevaRacha >= 7 && user.racha < 7) {
                                         puntosExtra += 1 // Punto por completar semana
                                     }
-                                    
+
                                     val userActualizado = user.copy(
                                         racha = nuevaRacha,
                                         puntosRacha = puntosExtra,
@@ -219,43 +157,10 @@ fun AppNavegacion() {
                         "home" -> PantallaInicio(
                             nombreUsuario = nombreAMostrar,
                             esInvitado = esInvitado,
-                            usuarioReal = usuarioActual,
-                            onColores = {
-                                if (!esInvitado && usuarioActual != null) {
-                                    scope.launch {
-                                        val db = AppDatabase.getDatabase(context)
-                                        val u = usuarioActual!!
-                                        val actualizado = u.copy(sessionInicioTimestamp = System.currentTimeMillis())
-                                        db.userDao().actualizarUsuario(actualizado)
-                                        usuarioActual = actualizado
-                                    }
-                                }
-                                pantallaActual = "colores"
-                            },
-                            onNumeros = {
-                                if (!esInvitado && usuarioActual != null) {
-                                    scope.launch {
-                                        val db = AppDatabase.getDatabase(context)
-                                        val u = usuarioActual!!
-                                        val actualizado = u.copy(sessionInicioTimestamp = System.currentTimeMillis())
-                                        db.userDao().actualizarUsuario(actualizado)
-                                        usuarioActual = actualizado
-                                    }
-                                }
-                                pantallaActual = "numeros"
-                            },
-                            onVocales = {
-                                if (!esInvitado && usuarioActual != null) {
-                                    scope.launch {
-                                        val db = AppDatabase.getDatabase(context)
-                                        val u = usuarioActual!!
-                                        val actualizado = u.copy(sessionInicioTimestamp = System.currentTimeMillis())
-                                        db.userDao().actualizarUsuario(actualizado)
-                                        usuarioActual = actualizado
-                                    }
-                                }
-                                pantallaActual = "vocales"
-                            },
+                            usuarioReal = usuarioActual, // Pasar el objeto real
+                            onColores = { pantallaActual = "colores" },
+                            onNumeros = { pantallaActual = "numeros" },
+                            onVocales = { pantallaActual = "vocales" },
                             onCuestionario = { pantallaActual = "cuestionario" },
                             onShowRestriccion = {
                                 scope.launch {
@@ -268,7 +173,7 @@ fun AppNavegacion() {
                                 pantallaActual = "perfil"
                             }
                         )
-                        "perfil" -> Box(Modifier.padding(paddingValues)) { 
+                        "perfil" -> Box(Modifier.padding(paddingValues)) {
                             PantallaPerfil(
                                 nombreUsuario = nombreAMostrar,
                                 esInvitado = esInvitado,
@@ -285,22 +190,33 @@ fun AppNavegacion() {
                             )
                         }
                         "colores" -> PantallaColores(
-                            onVolver = { 
+                            onVolver = {
+                                // Incrementar lecciones si no es invitado
                                 if (!esInvitado && usuarioActual != null) {
-                                    val u = usuarioActual!!
-                                    val reset = u.copy(sessionInicioTimestamp = 0L)
-                                    usuarioActual = reset
                                     scope.launch {
                                         val db = AppDatabase.getDatabase(context)
-                                        db.userDao().actualizarUsuario(reset)
-                                        val actualizado = reset.copy(
-                                            leccionesTotales = u.leccionesTotales + 1
+                                        val u = usuarioActual!!
+
+                                        // Sistema de XP: +20 XP por lección, máx 100
+                                        val nuevaXp = (u.xpActual + 20).coerceAtMost(100)
+                                        val examenListo = nuevaXp >= 100
+
+                                        val nuevoProgreso = (u.progresoColores + 10).coerceAtMost(100)
+                                        val actualizado = u.copy(
+                                            leccionesTotales = u.leccionesTotales + 1,
+                                            progresoColores = nuevoProgreso,
+                                            xpActual = nuevaXp,
+                                            examenDisponible = examenListo
                                         )
                                         db.userDao().actualizarUsuario(actualizado)
                                         usuarioActual = actualizado
+
+                                        if (examenListo) {
+                                            snackbarHostState.showSnackbar("¡Has llegado a 100 XP! Toma el examen para subir de nivel.")
+                                        }
                                     }
                                 }
-                                pantallaActual = "home" 
+                                pantallaActual = "home"
                             },
                             limite = if (esInvitado) 3 else null,
                             onSessionEarned = {
@@ -308,61 +224,41 @@ fun AppNavegacion() {
                                     scope.launch {
                                         val db = AppDatabase.getDatabase(context)
                                         val u = usuarioActual!!
-                                        
-                                        if (u.sesionBloqueada) {
-                                            snackbarHostState.showSnackbar("Sesiones bloqueadas. Debes pasar el examen de ascenso primero.")
-                                            return@launch
-                                        }
-                                        
-                                        if (u.sessionInicioTimestamp == 0L) {
-                                            return@launch
-                                        }
-                                        
-                                        val ahora = System.currentTimeMillis()
-                                        if (ahora - u.sessionInicioTimestamp < 180_000) {
-                                            snackbarHostState.showSnackbar("Debes completar los 3 minutos de sesión.")
-                                            return@launch
-                                        }
-                                        
-                                        val nuevasSesiones = u.sesionesTotales + 1
-                                        val esLimite = nuevasSesiones % 5 == 0 && nuevasSesiones > 0
-                                        val nuevaXp = (u.xpActual + 20).coerceAtMost(100)
-                                        val actualizado = u.copy(
-                                            sesionesTotales = nuevasSesiones,
-                                            sesionBloqueada = esLimite,
-                                            xpActual = nuevaXp,
-                                            examenDisponible = if (esLimite) true else (nuevaXp >= 100 || u.examenDisponible),
-                                            leccionesTotales = u.leccionesTotales + 1
-                                        )
+                                        val actualizado = u.copy(sesionesTotales = u.sesionesTotales + 1)
                                         db.userDao().actualizarUsuario(actualizado)
                                         usuarioActual = actualizado
-                                        
-                                        if (esLimite) {
-                                            snackbarHostState.showSnackbar("¡Sesiones completadas! El examen de ascenso está listo.")
-                                        } else {
-                                            snackbarHostState.showSnackbar("¡Sesión de 3 min completada! +1 sesión.")
-                                        }
+                                        snackbarHostState.showSnackbar("¡Sesión de 3 min completada! +1 sesión.")
                                     }
                                 }
                             }
                         )
                         "numeros" -> PantallaNumeros(
-                            onVolver = { 
+                            onVolver = {
+                                // Incrementar lecciones si no es invitado
                                 if (!esInvitado && usuarioActual != null) {
-                                    val u = usuarioActual!!
-                                    val reset = u.copy(sessionInicioTimestamp = 0L)
-                                    usuarioActual = reset
                                     scope.launch {
                                         val db = AppDatabase.getDatabase(context)
-                                        db.userDao().actualizarUsuario(reset)
-                                        val actualizado = reset.copy(
-                                            leccionesTotales = u.leccionesTotales + 1
+                                        val u = usuarioActual!!
+
+                                        val nuevaXp = (u.xpActual + 20).coerceAtMost(100)
+                                        val examenListo = nuevaXp >= 100
+
+                                        val nuevoProgreso = (u.progresoNumeros + 5).coerceAtMost(100)
+                                        val actualizado = u.copy(
+                                            leccionesTotales = u.leccionesTotales + 1,
+                                            progresoNumeros = nuevoProgreso,
+                                            xpActual = nuevaXp,
+                                            examenDisponible = examenListo
                                         )
                                         db.userDao().actualizarUsuario(actualizado)
                                         usuarioActual = actualizado
+
+                                        if (examenListo) {
+                                            snackbarHostState.showSnackbar("¡Has llegado a 100 XP! Toma el examen para subir de nivel.")
+                                        }
                                     }
                                 }
-                                pantallaActual = "home" 
+                                pantallaActual = "home"
                             },
                             limite = if (esInvitado) 5 else null,
                             onSessionEarned = {
@@ -370,40 +266,10 @@ fun AppNavegacion() {
                                     scope.launch {
                                         val db = AppDatabase.getDatabase(context)
                                         val u = usuarioActual!!
-                                        
-                                        if (u.sesionBloqueada) {
-                                            snackbarHostState.showSnackbar("Sesiones bloqueadas. Debes pasar el examen de ascenso primero.")
-                                            return@launch
-                                        }
-                                        
-                                        if (u.sessionInicioTimestamp == 0L) {
-                                            return@launch
-                                        }
-                                        
-                                        val ahora = System.currentTimeMillis()
-                                        if (ahora - u.sessionInicioTimestamp < 180_000) {
-                                            snackbarHostState.showSnackbar("Debes completar los 3 minutos de sesión.")
-                                            return@launch
-                                        }
-                                        
-                                        val nuevasSesiones = u.sesionesTotales + 1
-                                        val esLimite = nuevasSesiones % 5 == 0 && nuevasSesiones > 0
-                                        val nuevaXp = (u.xpActual + 20).coerceAtMost(100)
-                                        val actualizado = u.copy(
-                                            sesionesTotales = nuevasSesiones,
-                                            sesionBloqueada = esLimite,
-                                            xpActual = nuevaXp,
-                                            examenDisponible = if (esLimite) true else (nuevaXp >= 100 || u.examenDisponible),
-                                            leccionesTotales = u.leccionesTotales + 1
-                                        )
+                                        val actualizado = u.copy(sesionesTotales = u.sesionesTotales + 1)
                                         db.userDao().actualizarUsuario(actualizado)
                                         usuarioActual = actualizado
-                                        
-                                        if (esLimite) {
-                                            snackbarHostState.showSnackbar("¡Sesiones completadas! El examen de ascenso está listo.")
-                                        } else {
-                                            snackbarHostState.showSnackbar("¡Sesión de 3 min completada! +1 sesión.")
-                                        }
+                                        snackbarHostState.showSnackbar("¡Sesión de 3 min completada! +1 sesión.")
                                     }
                                 }
                             }
@@ -411,17 +277,26 @@ fun AppNavegacion() {
                         "vocales" -> PantallaVocales(
                             onVolver = {
                                 if (!esInvitado && usuarioActual != null) {
-                                    val u = usuarioActual!!
-                                    val reset = u.copy(sessionInicioTimestamp = 0L)
-                                    usuarioActual = reset
                                     scope.launch {
                                         val db = AppDatabase.getDatabase(context)
-                                        db.userDao().actualizarUsuario(reset)
-                                        val actualizado = reset.copy(
-                                            leccionesTotales = u.leccionesTotales + 1
+                                        val u = usuarioActual!!
+
+                                        val nuevaXp = (u.xpActual + 20).coerceAtMost(100)
+                                        val examenListo = nuevaXp >= 100
+
+                                        val nuevoProgreso = (u.progresoVocales + 20).coerceAtMost(100)
+                                        val actualizado = u.copy(
+                                            leccionesTotales = u.leccionesTotales + 1,
+                                            progresoVocales = nuevoProgreso,
+                                            xpActual = nuevaXp,
+                                            examenDisponible = examenListo
                                         )
                                         db.userDao().actualizarUsuario(actualizado)
                                         usuarioActual = actualizado
+
+                                        if (examenListo) {
+                                            snackbarHostState.showSnackbar("¡Has llegado a 100 XP! Toma el examen para subir de nivel.")
+                                        }
                                     }
                                 }
                                 pantallaActual = "home"
@@ -432,105 +307,48 @@ fun AppNavegacion() {
                                     scope.launch {
                                         val db = AppDatabase.getDatabase(context)
                                         val u = usuarioActual!!
-                                        
-                                        if (u.sesionBloqueada) {
-                                            snackbarHostState.showSnackbar("Sesiones bloqueadas. Debes pasar el examen de ascenso primero.")
-                                            return@launch
-                                        }
-                                        
-                                        if (u.sessionInicioTimestamp == 0L) {
-                                            return@launch
-                                        }
-                                        
-                                        val ahora = System.currentTimeMillis()
-                                        if (ahora - u.sessionInicioTimestamp < 180_000) {
-                                            snackbarHostState.showSnackbar("Debes completar los 3 minutos de sesión.")
-                                            return@launch
-                                        }
-                                        
-                                        val nuevasSesiones = u.sesionesTotales + 1
-                                        val esLimite = nuevasSesiones % 5 == 0 && nuevasSesiones > 0
-                                        val nuevaXp = (u.xpActual + 20).coerceAtMost(100)
-                                        val actualizado = u.copy(
-                                            sesionesTotales = nuevasSesiones,
-                                            sesionBloqueada = esLimite,
-                                            xpActual = nuevaXp,
-                                            examenDisponible = if (esLimite) true else (nuevaXp >= 100 || u.examenDisponible),
-                                            leccionesTotales = u.leccionesTotales + 1
-                                        )
+                                        val actualizado = u.copy(sesionesTotales = u.sesionesTotales + 1)
                                         db.userDao().actualizarUsuario(actualizado)
                                         usuarioActual = actualizado
-                                        
-                                        if (esLimite) {
-                                            snackbarHostState.showSnackbar("¡Sesiones completadas! El examen de ascenso está listo.")
-                                        } else {
-                                            snackbarHostState.showSnackbar("¡Sesión de 3 min completada! +1 sesión.")
-                                        }
+                                        snackbarHostState.showSnackbar("¡Sesión de 3 min completada! +1 sesión.")
                                     }
                                 }
                             }
                         )
                         "cuestionario" -> PantallaCuestionario(
                             onVolver = { pantallaActual = "home" },
-                            onFinish = { correctas, totales, correctasPorCat ->
+                            onFinish = { correctas, totales ->
                                 if (!esInvitado && usuarioActual != null) {
                                     scope.launch {
                                         val db = AppDatabase.getDatabase(context)
                                         val u = usuarioActual!!
                                         val correctPercent = (correctas.toFloat() / totales) * 100
-                                        
+
                                         var nuevasLecciones = u.leccionesTotales + 1
                                         var nuevoNivel = u.nivel
-                                        var nuevaXp = u.xpActual
+                                        var nuevaXp = (u.xpActual + 5).coerceAtMost(100) // Un poco de XP por quiz normal
                                         var examenPendiente = u.examenDisponible
-                                        var nuevasSesiones = u.sesionesTotales
 
                                         // Lógica de ASCENSO
-                                        if (u.examenDisponible) {
-                                            if (correctPercent >= 70) {
-                                                nuevoNivel = u.nivel + 1
-                                                nuevaXp = 0
-                                                examenPendiente = false
-                                                snackbarHostState.showSnackbar("¡Felicidades! Aprobaste el examen. ¡Bienvenido al Nivel $nuevoNivel!")
-                                            } else {
-                                                snackbarHostState.showSnackbar("No alcanzaste el 70%. Repasa y vuelve a intentar el examen.")
-                                            }
-                                        } else {
-                                            nuevaXp = (u.xpActual + 5).coerceAtMost(100)
-                                            nuevasSesiones = u.sesionesTotales + 1
-                                            if (nuevaXp >= 100) {
-                                                examenPendiente = true
-                                                snackbarHostState.showSnackbar("¡100 XP alcanzados! El Examen de Ascenso está listo.")
-                                            } else {
-                                                snackbarHostState.showSnackbar("¡Cuestionario completado! +1 lección.")
-                                            }
+                                        if (u.examenDisponible && correctPercent >= 70) {
+                                            nuevoNivel = u.nivel + 1
+                                            nuevaXp = 0
+                                            examenPendiente = false
+                                            snackbarHostState.showSnackbar("¡FELICIDADES! Has aprobado el examen y subido al Nivel $nuevoNivel")
+                                        } else if (u.examenDisponible) {
+                                            snackbarHostState.showSnackbar("No has alcanzado el 70%. Repite el examen para subir de nivel.")
                                         }
 
-                                        val cCorr = correctasPorCat["colores"] ?: 0
-                                        val nCorr = correctasPorCat["numeros"] ?: 0
-                                        val vCorr = correctasPorCat["vocales"] ?: 0
-
-                                        val esLimiteSesion = nuevasSesiones % 5 == 0 && nuevasSesiones > 0
-                                        val sesionBloqueada = if (u.examenDisponible && correctPercent >= 70) {
-                                            false
-                                        } else {
-                                            u.sesionBloqueada || esLimiteSesion
-                                        }
-                                        if (esLimiteSesion && !u.examenDisponible) {
-                                            examenPendiente = true
-                                        }
                                         val actualizado = u.copy(
                                             leccionesTotales = nuevasLecciones,
-                                            sesionesTotales = nuevasSesiones,
                                             respuestasCorrectas = u.respuestasCorrectas + correctas,
                                             preguntasTotales = u.preguntasTotales + totales,
                                             nivel = nuevoNivel,
                                             xpActual = nuevaXp,
                                             examenDisponible = examenPendiente,
-                                            sesionBloqueada = sesionBloqueada,
-                                            progresoColores = (u.progresoColores + cCorr).coerceAtMost(100),
-                                            progresoNumeros = (u.progresoNumeros + nCorr).coerceAtMost(100),
-                                            progresoVocales = (u.progresoVocales + vCorr).coerceAtMost(100)
+                                            progresoColores = (u.progresoColores + 5).coerceAtMost(100),
+                                            progresoNumeros = (u.progresoNumeros + 5).coerceAtMost(100),
+                                            progresoVocales = (u.progresoVocales + 5).coerceAtMost(100)
                                         )
                                         db.userDao().actualizarUsuario(actualizado)
                                         usuarioActual = actualizado
@@ -562,7 +380,7 @@ fun AppNavegacion() {
                             icon = Icons.Default.Home,
                             label = "Inicio",
                             isSelected = selectedTab == 0,
-                            onClick = { 
+                            onClick = {
                                 selectedTab = 0
                                 pantallaActual = "home"
                             }
@@ -571,7 +389,7 @@ fun AppNavegacion() {
                             icon = Icons.Default.Person,
                             label = "Perfil",
                             isSelected = selectedTab == 1,
-                            onClick = { 
+                            onClick = {
                                 selectedTab = 1
                                 pantallaActual = "perfil"
                             }
@@ -592,7 +410,7 @@ fun NavItem(
 ) {
     val colorCian = Color(0xFF00F5D4)
     val colorGris = Color(0xFFAAAAAA)
-    
+
     val scale by animateFloatAsState(if (isSelected) 1.2f else 1.0f, label = "navScale")
     val color by animateColorAsState(if (isSelected) colorCian else colorGris, label = "navColor")
 
